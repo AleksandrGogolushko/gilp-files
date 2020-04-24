@@ -11,11 +11,15 @@ const reporter    = require('postcss-reporter');
 const stylelint   = require('stylelint');
 const terser = require("gulp-terser");
 const del = require("del");
+const sourcemaps = require('gulp-sourcemap');
+const sass = require('gulp-sass');
+// const watch = require('gulp-watch');
 
 //all files
-const cssFiles = ["./src/css/style.css"];
-const jsFiles = ["./src/js/main.js"];
-const images = ["./src/images/*"];
+const cssFiles = ["./src/css/*.css"];
+const jsFiles = ["./src/js/*.js"];
+const images = ["./src/image/*"];
+const scssFiles = ["./src/scss/*.scss"]
 
 // Task for HTML
 function index(){
@@ -23,6 +27,14 @@ function index(){
     .pipe(htmlmin())
     .pipe(gulp.dest("./build"))
 }
+
+//Task for Scss
+sass.compiler = require('node-sass');
+function scssToCss(){
+  return gulp.src(scssFiles)
+  .pipe(sass().on('error', sass.logError))
+  .pipe(gulp.dest('./src/css'));
+ }
 
 //Task for CSS
 function styles(){
@@ -55,16 +67,16 @@ function styles(){
       ];
       return gulp.src(cssFiles)
       //проверяем правильность CSS
-        .pipe(postcss(processors))
+        // .pipe(postcss(processors))
       //сокращаем CSS свойства
-        .pipe(shorthand())
+        // .pipe(shorthand())
       //расстановка префиксов для старых браузеров
         .pipe(autoprefixer({
             cascade: false
         }))
       //минификация CSS
         .pipe(cleanCSS({level: 2}))
-        .pipe(gulp.dest("./build/css"))
+        .pipe(gulp.dest("./build/src/css"))
         .pipe(browserSync.stream());
 }
 
@@ -77,7 +89,7 @@ function scripts(){
     }))
     // минификация и оптимизация 
     .pipe(terser())
-    .pipe(gulp.dest("./build/js"))
+    .pipe(gulp.dest("./build/src/js"))
     .pipe(browserSync.stream());
 
 }
@@ -88,7 +100,7 @@ function image(){
     .pipe(imagemin({
         progressive: true
       }))
-    .pipe(gulp.dest("./build/images"))
+    .pipe(gulp.dest("./build/src/image"))
 
 }
 
@@ -107,13 +119,17 @@ function watch(){
     gulp.watch("./src/images/*",image)
     //показывает изменение в браузере
     gulp.watch("./*.html").on('change', browserSync.reload); 
+    //следит за scss файлами 
+    gulp.watch("./src/scss/*",scssToCss)
 }
 
 function clean(){
-    return del(["build/*"])
+    return del(["build/src/*"])
 }
 //HTML
 gulp.task("index",index);
+//Scss
+gulp.task("ScssConvert",scssToCss)
 //CSS
 gulp.task("styles",styles);
 //JS
