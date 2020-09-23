@@ -13,7 +13,7 @@ const terser = require("gulp-terser");
 const del = require("del");
 const sourcemaps = require('gulp-sourcemap');
 const sass = require('gulp-sass');
-// const watch = require('gulp-watch');
+const watch = require('gulp-watch');
 
 //all files
 const cssFiles = ["./src/css/*.css"];
@@ -66,15 +66,15 @@ function styles(){
         })
       ];
       return gulp.src(cssFiles)
-      //проверяем правильность CSS
-        // .pipe(postcss(processors))
-      //сокращаем CSS свойства
-        // .pipe(shorthand())
-      //расстановка префиксов для старых браузеров
+      //checking the correctness CSS
+        .pipe(postcss(processors))
+      //shortening the CSS prpperty
+        .pipe(shorthand())
+      //add prefix
         .pipe(autoprefixer({
             cascade: false
         }))
-      //минификация CSS
+      //minification CSS
         .pipe(cleanCSS({level: 2}))
         .pipe(gulp.dest("./build/src/css"))
         .pipe(browserSync.stream());
@@ -83,11 +83,11 @@ function styles(){
 //Task for JS
 function scripts(){
     return gulp.src(jsFiles)
-    //конвертируем код в более старую версию
+    //converting the code to the old version
     .pipe(babel({
         presets: ['@babel/env']
     }))
-    // минификация и оптимизация 
+    // minification and optimization 
     .pipe(terser())
     .pipe(gulp.dest("./build/src/js"))
     .pipe(browserSync.stream());
@@ -111,15 +111,15 @@ function watch(){
         }
     });
 
-    //следит за css файлами
+    //watch at the css 
     gulp.watch("./src/css/**/*.css",styles)
-    //следит за js файлами
+    //watch at the js 
     gulp.watch("./src/js/**/*.js",scripts)
-    //следит за изображениями
+    //watch at the images
     gulp.watch("./src/images/*",image)
-    //показывает изменение в браузере
+    //shows the change in the browser
     gulp.watch("./*.html").on('change', browserSync.reload); 
-    //следит за scss файлами 
+    //watch at the scss 
     gulp.watch("./src/scss/*",scssToCss)
 }
 
@@ -136,12 +136,12 @@ gulp.task("styles",styles);
 gulp.task("scripts",scripts);
 //Image
 gulp.task("image",image);
-//Отслеживает изменение
+//tracks changes
 gulp.task("watch",watch);
-//Очищаем корневую папку build
+//delete build folder
 gulp.task("del",clean);
 //final
-//Удаляем все в папке build и запускаем таски для HTML, CSS, JS, images.
+//delete all in build folder and starts tasks: HTML, CSS, JS, images.
 gulp.task("build",gulp.series(clean, gulp.parallel(index,styles,scripts,image)));
 
 gulp.task("dev",gulp.series("build","watch"));
